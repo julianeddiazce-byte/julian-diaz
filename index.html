@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Ecommerce Ropa Vintage - Julian Diaz</title>
+
+  <style>
+    /* ========================
+       🎨 PALETA AZUL + BEIGE
+       ======================== */
+    :root{
+      --azul:#1e3a5f;
+      --azul-claro:#375c89;
+      --beige:#f3e8d8;
+      --beige-claro:#fff8ef;
+      --texto:#1a1a1a;
+      --card:#ffffff;
+      --borde:#d8d2c6;
+      --ok:#2a8f4a;
+      --warn:#c0392b;
+    }
+
+    body{
+      font-family: system-ui;
+      background: var(--beige);
+      color: var(--texto);
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+    }
+
+    header{
+      background: var(--azul);
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+      margin-bottom: 25px;
+    }
+
+    /* ========================
+       PRODUCTOS
+       ======================== */
+    #productos{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .producto{
+      background: var(--card);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .producto img{
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .producto button{
+      background: var(--azul);
+      color: white;
+      padding: 10px;
+      border: none;
+      margin-top: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* ========================
+       CARRITO
+       ======================== */
+    .carrito{
+      background: var(--beige-claro);
+      border: 1px solid var(--borde);
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 30px;
+      display: inline-block;
+      text-align: left;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    #lista-carrito{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #lista-carrito li{
+      background: var(--card);
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      border: 1px solid var(--borde);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .qty button{
+      background: var(--azul-claro);
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .remove{
+      background: var(--warn);
+      padding: 6px 8px;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .vaciar{
+      background: var(--warn);
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .finalizar{
+      background: var(--azul);
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🧥 Ecommerce Ropa Vintage - Julian Diaz</h1>
+  <p>Moda retro, calidad moderna</p>
+</header>
+
+<!-- =======================
+     PRODUCTOS
+     ======================= -->
+<section id="productos"></section>
+
+<!-- =======================
+     CARRITO
+     ======================= -->
+<div class="carrito">
+  <h2>🧾 Carrito (<span id="cantidad-carrito">0</span>)</h2>
+  <ul id="lista-carrito"></ul>
+
+  <p>Subtotal: <strong id="subtotal-text">$0</strong></p>
+  <p>Impuestos: <strong id="impuestos-text">$0</strong></p>
+  <p>Descuento: <strong id="descuento-text">$0</strong></p>
+  <p>Total: <strong id="total-text">$0</strong></p>
+
+  <button id="btn-vaciar" class="vaciar">🧼 Vaciar Carrito</button>
+  <button id="btn-finalizar" class="finalizar">✅ Finalizar Compra</button>
+
+  <div id="paypal-button-container" style="margin-top:12px; display:none;"></div>
+</div>
+
+<!-- =======================
+     PAYPAL SDK
+     ======================= -->
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+
+<script>
+/* ===================================================
+   CONFIG
+   =================================================== */
+const MONEDA = "USD";
+const money = new Intl.NumberFormat("es-US", { style:"currency", currency:MONEDA });
+
+/* ===================================================
+   DATASET VINTAGE (mantengo tus imágenes)
+   =================================================== */
+const productos = [
+  {
+    id: 1,
+    nombre: "Stick Season Hoodie - Vintage Black",
+    precio: 25.00,
+    categoria: "Hoodies",
+    img: "https://store.noahkahan.com/cdn/shop/files/NoahKahan_Merch_SoftGoods_54.png?v=1737646811&width=1200"
+  },
+  {
+    id: 2,
+    nombre: "Cape Elizabeth Tee",
+    precio: 18.00,
+    categoria: "Camisetas",
+    img: "https://store.noahkahan.com/cdn/shop/files/cape_eliz.png?v=1753284346&width=400"
+  },
+  {
+    id: 3,
+    nombre: "Sweatpants",
+    precio: 30.00,
+    categoria: "Pantalones",
+    img: "https://store.noahkahan.com/cdn/shop/files/NoahKahan_Merch_SoftGoods_5.jpg?v=1737649033&width=1200"
+  },
+  {
+    id: 4,
+    nombre: "You're Gonna Go Far Cap",
+    precio: 18.00,
+    categoria: "Accesorios",
+    img: "https://store.noahkahan.com/cdn/shop/files/NK-25_HOLIDAY_YGGF-CAP_MOCK-01_1.png?v=1763049425&width=800"
+  },
+  {
+    id: 5,
+    nombre: "Lakeside Crewneck",
+    precio: 22.00,
+    categoria: "Sudaderas",
+    img: "https://store.noahkahan.com/cdn/shop/files/NoahKahan_Merch_SoftGoods_34_1.png?v=1737645156&width=1200"
+  }
+];
+
+/* ===================================================
+   ESTADO DEL CARRITO
+   =================================================== */
+let carrito = new Map();
+
+function persist(){ localStorage.setItem("carrito", JSON.stringify([...carrito])); }
+function load(){
+  const data = localStorage.getItem("carrito");
+  if(data) carrito = new Map(JSON.parse(data));
+}
+
+/* ===================================================
+   RENDER PRODUCTOS
+   =================================================== */
+const cont = document.getElementById("productos");
+
+function mostrarProductos(){
+  cont.innerHTML = "";
+  productos.forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "producto";
+    card.innerHTML = `
+      <img src="${p.img}">
+      <h3>${p.nombre}</h3>
+      <p><strong>${money.format(p.precio)}</strong></p>
+      <button data-add="${p.id}">Agregar al carrito</button>
+    `;
+    cont.appendChild(card);
+  });
+}
+
+/* ===================================================
+   CARRITO
+   =================================================== */
+const lista = document.getElementById("lista-carrito");
+const subtotalTxt = document.getElementById("subtotal-text");
+const impuestosTxt = document.getElementById("impuestos-text");
+const descuentoTxt = document.getElementById("descuento-text");
+const totalTxt = document.getElementById("total-text");
+const cantTxt = document.getElementById("cantidad-carrito");
+const paypalContainer = document.getElementById("paypal-button-container");
+
+function totales(){
+  let subtotal = 0;
+  carrito.forEach(i => subtotal += i.precio * i.cantidad);
+  let impuestos = subtotal * 0.00;  
+  let descuento = 0.00;
+  let total = subtotal + impuestos - descuento;
+  let cantidad = [...carrito.values()].reduce((a,i)=>a+i.cantidad,0);
+  return {subtotal, impuestos, descuento, total, cantidad};
+}
+
+function pintarCarrito(){
+  lista.innerHTML = "";
+  carrito.forEach(i=>{
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>${i.nombre} — ${money.format(i.precio)} x ${i.cantidad}</span>
+      <div class="qty">
+        <button data-dec="${i.id}">−</button>
+        <span>${i.cantidad}</span>
+        <button data-inc="${i.id}">+</button>
+        <button class="remove" data-del="${i.id}">❌</button>
+      </div>`;
+    lista.appendChild(li);
+  });
+
+  const {subtotal, impuestos, descuento, total, cantidad} = totales();
+  subtotalTxt.textContent = money.format(subtotal);
+  impuestosTxt.textContent = money.format(impuestos);
+  descuentoTxt.textContent = money.format(descuento);
+  totalTxt.textContent = money.format(total);
+  cantTxt.textContent = cantidad;
+
+  paypalContainer.style.display = total > 0 ? "block" : "none";
+  renderPayPal(total);
+}
+
+function add(id){
+  const p = productos.find(x => x.id === id);
+  if(!p) return;
+  const item = carrito.get(id);
+  if(item) item.cantidad++;
+  else carrito.set(id, {...p, cantidad:1});
+  persist(); pintarCarrito();
+}
+
+function dec(id){
+  const item = carrito.get(id);
+  if(!item) return;
+  item.cantidad--;
+  if(item.cantidad <= 0) carrito.delete(id);
+  persist(); pintarCarrito();
+}
+
+function del(id){
+  carrito.delete(id);
+  persist(); pintarCarrito();
+}
+
+/* ===================================================
+   PAYPAL
+   =================================================== */
+let lastPaypalTotal = null;
+
+function renderPayPal(total){
+  if (total <= 0) { paypalContainer.innerHTML = ""; return; }
+  if (lastPaypalTotal === total) return;
+  lastPaypalTotal = total;
+
+  paypalContainer.innerHTML = "";
+  paypal.Buttons({
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{ amount: { value: total.toFixed(2) }}]
+      });
+    },
+    onApprove: (data, actions) => {
+      return actions.order.capture().then(info => {
+        alert("Pago completado. ¡Gracias por tu compra!");
+        carrito.clear(); persist(); pintarCarrito();
+      });
+    }
+  }).render("#paypal-button-container");
+}
+
+/* ===================================================
+   EVENTOS
+   =================================================== */
+document.addEventListener("click", e=>{
+  if(e.target.dataset.add) add(+e.target.dataset.add);
+  if(e.target.dataset.inc) add(+e.target.dataset.inc);
+  if(e.target.dataset.dec) dec(+e.target.dataset.dec);
+  if(e.target.dataset.del) del(+e.target.dataset.del);
+});
+
+document.getElementById("btn-vaciar").onclick = ()=>{
+  if(confirm("¿Vaciar carrito?")){
+    carrito.clear(); persist(); pintarCarrito();
+  }
+};
+
+document.getElementById("btn-finalizar").onclick = ()=>{
+  if(carrito.size === 0) return alert("Carrito vacío");
+  alert("Compra finalizada (simulación).");
+  carrito.clear(); persist(); pintarCarrito();
+};
+
+/* ===================================================
+   INIT
+   =================================================== */
+load();
+mostrarProductos();
+pintarCarrito();
+</script>
+
+</body>
+</html>
